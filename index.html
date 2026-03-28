@@ -6,78 +6,98 @@
     <title>Trading Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Essential for pop-ups: relative lets notes attach to the box, visible lets them pop out */
-        .day-card { min-height: 110px; transition: transform 0.2s; border: 1px solid #334155; position: relative; overflow: visible !important; }
-        .bg-profit { background-color: #22c55e !important; color: white; }
-        .bg-loss { background-color: #ef4444 !important; color: white; }
-        .bg-breakeven { background-color: #eab308 !important; color: white; }
+        /* Responsive height: shorter on mobile (110px), taller on PC (150px) */
+        .day-card { 
+            min-height: 110px; 
+            transition: all 0.2s; 
+            border: 1px solid #334155; 
+            position: relative; 
+            overflow: visible !important; 
+        }
+        @media (min-width: 1024px) {
+            .day-card { min-height: 150px; }
+        }
+
+        .bg-profit { background-color: #22c55e !important; color: white; border-color: #4ade80; }
+        .bg-loss { background-color: #ef4444 !important; color: white; border-color: #f87171; }
+        .bg-breakeven { background-color: #eab308 !important; color: white; border-color: #facc15; }
 
         /* Pop-up Styling */
         .details-pop {
             display: none; position: absolute; z-index: 100; bottom: 105%; left: 50%;
-            transform: translateX(-50%); width: 180px; padding: 10px;
+            transform: translateX(-50%); width: 220px; padding: 12px;
             background: #0f172a; border: 2px solid #3b82f6; border-radius: 8px;
-            font-size: 11px; color: white; text-align: center; pointer-events: none;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            font-size: 12px; color: white; text-align: center; pointer-events: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
         }
         .day-card:hover .details-pop, .day-card:active .details-pop { display: block; }
     </style>
 </head>
-<body class="bg-slate-900 text-white font-sans p-4 md:p-8">
+<body class="bg-slate-900 text-white font-sans p-4 md:p-10">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-slate-700 pb-6">
-            <div class="mb-4 md:mb-0">
-                <h1 id="monthTitle" class="text-4xl font-black text-blue-400 uppercase tracking-tighter italic">MONTH</h1>
-                <p class="text-slate-400 text-sm">Trading Performance Tracker</p>
+    <div class="max-w-screen-2xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-end mb-10 border-b border-slate-700 pb-8">
+            <div class="mb-6 md:mb-0">
+                <h1 id="monthTitle" class="text-5xl font-black text-blue-400 uppercase tracking-tighter italic">MONTH</h1>
+                <p class="text-slate-400 text-base mt-2">Trading Performance Tracker</p>
             </div>
-            <div class="flex gap-4 md:gap-8 text-right">
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Win Rate</p><p id="winRate" class="text-2xl font-mono text-yellow-400">0%</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Total Trades</p><p id="totalTrades" class="text-2xl font-mono text-blue-400">0</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Net PNL</p><p id="totalPNL" class="text-2xl font-mono text-green-400">$0.00</p></div>
+            <div class="flex gap-6 md:gap-12 text-right">
+                <div class="border-r border-slate-700 pr-6 md:pr-12">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Win Rate</p>
+                    <p id="winRate" class="text-4xl font-mono text-yellow-400">0%</p>
+                </div>
+                <div class="border-r border-slate-700 pr-6 md:pr-12">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Total Trades</p>
+                    <p id="totalTrades" class="text-4xl font-mono text-blue-400">0</p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Net PNL</p>
+                    <p id="totalPNL" class="text-4xl font-mono text-green-400">$0.00</p>
+                </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div class="flex flex-col gap-4">
-                <div class="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700">
-                    <h2 class="text-xl font-semibold mb-4 text-blue-300 uppercase italic">Log Session</h2>
-                    <form id="tradeForm" class="space-y-4">
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-10">
+            
+            <div class="xl:col-span-1 space-y-6">
+                <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+                    <h2 class="text-xl font-bold mb-6 text-blue-300 uppercase italic tracking-wider">Log Session</h2>
+                    <form id="tradeForm" class="space-y-5">
                         <div>
-                            <label class="block text-xs mb-1 text-slate-400 uppercase">Date</label>
-                            <input type="date" id="dateInput" required class="w-full bg-slate-700 border-none rounded p-2 focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-[10px] mb-2 text-slate-400 uppercase font-bold">Date</label>
+                            <input type="date" id="dateInput" required class="w-full bg-slate-700 border-none rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-white">
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs mb-1 text-slate-400 uppercase">PNL ($)</label>
-                                <input type="number" id="pnlInput" placeholder="0.00" step="0.01" required class="w-full bg-slate-700 border-none rounded p-2">
+                                <label class="block text-[10px] mb-2 text-slate-400 uppercase font-bold">PNL ($)</label>
+                                <input type="number" id="pnlInput" placeholder="0.00" step="0.01" required class="w-full bg-slate-700 border-none rounded-lg p-3 text-white">
                             </div>
                             <div>
-                                <label class="block text-xs mb-1 text-slate-400 uppercase">Trades</label>
-                                <input type="number" id="tradesInput" placeholder="Qty" required class="w-full bg-slate-700 border-none rounded p-2">
+                                <label class="block text-[10px] mb-2 text-slate-400 uppercase font-bold">Trades</label>
+                                <input type="number" id="tradesInput" placeholder="Qty" required class="w-full bg-slate-700 border-none rounded-lg p-3 text-white">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs mb-1 text-slate-400 uppercase">Journal Notes</label>
-                            <textarea id="noteInput" placeholder="e.g. Confidence, why you took the trade..." class="w-full bg-slate-700 border-none rounded p-2 text-sm h-20"></textarea>
+                            <label class="block text-[10px] mb-2 text-slate-400 uppercase font-bold">Journal Notes</label>
+                            <textarea id="noteInput" placeholder="Confidence, why you took the trade..." class="w-full bg-slate-700 border-none rounded-lg p-3 text-sm h-32 text-white resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded transition uppercase tracking-widest">Save To Calendar</button>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-blue-900/40">Save To Calendar</button>
                     </form>
                 </div>
-                <button onclick="resetData()" class="text-[10px] text-slate-500 hover:text-red-400 transition-colors uppercase font-bold tracking-widest text-center">⚠️ Clear Data</button>
+                <button onclick="resetData()" class="w-full text-[10px] text-slate-600 hover:text-red-400 transition-colors uppercase font-black tracking-widest text-center">⚠️ Clear Monthly Data</button>
             </div>
 
-            <div class="lg:col-span-3">
-                <div class="grid grid-cols-7 gap-2 mb-2 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
+            <div class="xl:col-span-4">
+                <div class="grid grid-cols-7 gap-3 mb-4 text-center text-slate-500 font-black text-xs uppercase tracking-widest">
                     <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
                 </div>
-                <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+                <div id="calendarGrid" class="grid grid-cols-7 gap-3">
+                    </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Using 'tradingDataV3' to keep it consistent with your stable version
         let tradeData = JSON.parse(localStorage.getItem('tradingDataV3')) || {};
 
         function renderCalendar() {
@@ -96,12 +116,10 @@
 
             let monthlyTotal = 0, totalTradesCount = 0, winningDays = 0, loggedDays = 0;
 
-            // Empty days
             for (let i = 0; i < firstDayIndex; i++) {
-                grid.innerHTML += `<div class="bg-slate-800/20 rounded-lg p-2 border border-transparent"></div>`;
+                grid.innerHTML += `<div class="bg-slate-800/10 rounded-xl p-2 border border-transparent"></div>`;
             }
 
-            // Actual days
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const data = tradeData[dateKey];
@@ -117,19 +135,20 @@
                     else bgColor = 'bg-breakeven';
 
                     content = `
-                        <div class="text-sm font-bold font-mono mt-1">${pnl >= 0 ? '+' : ''}${pnl}</div>
-                        <div class="text-[9px] opacity-90 leading-tight italic truncate w-full text-center px-1">${data.note || ''}</div>
-                        <div class="mt-auto text-[10px] font-black opacity-60">${data.trades} TRADES</div>
+                        <div class="text-lg md:text-xl font-black font-mono mt-2">${pnl >= 0 ? '+' : ''}${pnl}</div>
+                        <div class="text-[10px] md:text-xs opacity-90 mt-1 leading-tight italic truncate w-full text-center px-2">${data.note || ''}</div>
+                        <div class="mt-auto mb-1 text-[10px] font-black opacity-60">${data.trades} TRADES</div>
                         <div class="details-pop">
-                            <p class="text-blue-400 font-bold border-b border-slate-700 mb-1 pb-1">Day ${day}</p>
-                            <p class="italic">"${data.note || 'No notes'}"</p>
+                            <p class="text-blue-400 font-black border-b border-slate-700 mb-2 pb-1 uppercase tracking-tighter">Day ${day}</p>
+                            <p class="italic text-slate-200">"${data.note || 'No notes for this session'}"</p>
+                            <p class="mt-2 text-[10px] text-slate-400 uppercase">${data.trades} Trades Taken</p>
                         </div>
                     `;
                 }
 
                 grid.innerHTML += `
-                    <div class="day-card ${bgColor} p-1 rounded-lg flex flex-col items-center" tabindex="0">
-                        <span class="text-[10px] self-start opacity-40 font-bold">${day}</span>
+                    <div class="day-card ${bgColor} p-3 rounded-xl flex flex-col items-center shadow-sm" tabindex="0">
+                        <span class="text-xs self-start opacity-30 font-black">${day}</span>
                         ${content}
                     </div>
                 `;
@@ -137,7 +156,7 @@
 
             const winRateCalc = loggedDays > 0 ? ((winningDays / loggedDays) * 100).toFixed(1) : 0;
             document.getElementById('totalPNL').innerText = `$${monthlyTotal.toFixed(2)}`;
-            document.getElementById('totalPNL').className = `text-2xl font-mono ${monthlyTotal >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('totalPNL').className = `text-4xl font-mono ${monthlyTotal >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('totalTrades').innerText = totalTradesCount;
             document.getElementById('winRate').innerText = `${winRateCalc}%`;
         }
