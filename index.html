@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Performance Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .day-card { min-height: 100px; transition: transform 0.2s; border: 1px solid #334155; }
+        .day-card:hover { transform: scale(1.02); cursor: pointer; }
+        .bg-profit { background-color: #22c55e !important; color: white; } /* Green */
+        .bg-loss { background-color: #ef4444 !important; color: white; }   /* Red */
+        .bg-breakeven { background-color: #eab308 !important; color: white; } /* Yellow */
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-end mb-8 border-b border-slate-700 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400">TradeView Calendar</h1>
+                <p class="text-slate-400 text-sm">Monthly Performance Tracking</p>
+            </div>
+            <div class="flex gap-8 text-right">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-bold">Win Rate</p>
+                    <p id="winRate" class="text-2xl font-mono text-yellow-400 border-r border-slate-700 pr-8">0%</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-bold">Total Trades</p>
+                    <p id="totalTrades" class="text-2xl font-mono text-blue-400 border-r border-slate-700 pr-8">0</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-bold">Net PNL</p>
+                    <p id="totalPNL" class="text-2xl font-mono text-green-400">$0.00</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="flex flex-col gap-4">
+                <div class="bg-slate-800 p-6 rounded-xl shadow-xl h-fit">
+                    <h2 class="text-xl font-semibold mb-4">Log Daily Trade</h2>
+                    <form id="tradeForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm mb-1 text-slate-400">Date</label>
+                            <input type="date" id="dateInput" required class="w-full bg-slate-700 border-none rounded p-2 focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1 text-slate-400">PNL ($)</label>
+                            <input type="number" id="pnlInput" placeholder="0.00" step="0.01" required class="w-full bg-slate-700 border-none rounded p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1 text-slate-400">Trades Taken</label>
+                            <input type="number" id="tradesInput" placeholder="Count" required class="w-full bg-slate-700 border-none rounded p-2">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded transition">
+                            Update Calendar
+                        </button>
+                    </form>
+                </div>
+                <button onclick="resetData()" class="text-xs text-slate-500 hover:text-red-400 transition-colors uppercase font-bold tracking-widest">
+                    ⚠️ Clear All Data
+                </button>
+            </div>
+
+            <div class="lg:col-span-3">
+                <div class="grid grid-cols-7 gap-2 mb-2 text-center text-slate-500 font-bold text-xs uppercase">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div id="calendarGrid" class="grid grid-cols-7 gap-2">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tradeData = JSON.parse(localStorage.getItem('tradingDataSimple')) || {};
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Stats variables
+            let monthlyTotal = 0;
+            let totalTradesCount = 0;
+            let winningDays = 0;
+            let loggedDays = 0;
+
+            // Padding for start of month
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="bg-slate-800/20 rounded-lg p-2"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const data = tradeData[dateKey];
+                
+                let bgColor = 'bg-slate-800';
+                let content = '';
+
+                if (data) {
+                    const pnl = parseFloat(data.pnl);
+                    const trades = parseInt(data.trades);
+                    
+                    monthlyTotal += pnl;
+                    totalTradesCount += trades;
+                    loggedDays++;
+
+                    if (pnl > 0) {
+                        bgColor = 'bg-profit';
+                        winningDays++;
+                    } else if (pnl < 0) {
+                        bgColor = 'bg-loss';
+                    } else {
+                        bgColor = 'bg-breakeven';
+                    }
+
+                    content = `
+                        <div class="text-lg font-bold font-mono mt-1">${pnl >= 0 ? '+' : ''}${pnl}</div>
+                        <div class="text-[10px] opacity-80 uppercase">${trades} Trades</div>
+                    `;
+                }
+
+                grid.innerHTML += `
+                    <div class="day-card ${bgColor} p-2 rounded-lg flex flex-col items-center">
+                        <span class="text-[10px] self-start opacity-50 font-bold">${day}</span>
+                        <div class="flex-grow flex flex-col justify-center items-center">${content}</div>
+                    </div>
+                `;
+            }
+
+            // Update Header Stats
+            const winRateCalc = loggedDays > 0 ? ((winningDays / loggedDays) * 100).toFixed(1) : 0;
+            
+            document.getElementById('totalPNL').innerText = `$${monthlyTotal.toFixed(2)}`;
+            document.getElementById('totalPNL').className = monthlyTotal >= 0 ? 'text-2xl font-mono text-green-400' : 'text-2xl font-mono text-red-400';
+            document.getElementById('totalTrades').innerText = totalTradesCount;
+            document.getElementById('winRate').innerText = `${winRateCalc}%`;
+        }
+
+        document.getElementById('tradeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('dateInput').value;
+            const pnl = document.getElementById('pnlInput').value;
+            const trades = document.getElementById('tradesInput').value;
+
+            tradeData[date] = { pnl, trades };
+            localStorage.setItem('tradingDataSimple', JSON.stringify(tradeData));
+            renderCalendar();
+            e.target.reset();
+        });
+
+        function resetData() {
+            if(confirm("This will permanently delete your entire trading history for this calendar. Continue?")) {
+                localStorage.removeItem('tradingDataSimple');
+                tradeData = {};
+                renderCalendar();
+            }
+        }
+
+        renderCalendar();
+    </script>
+</body>
+</html>
