@@ -165,10 +165,27 @@
             // Calculate Win Rate based on total individual winning trades / total trades
             const winRateCalc = totalTradesCount > 0 ? ((totalWinsCount / totalTradesCount) * 100).toFixed(1) : 0;
             
+            // 1. Update Net PNL and Total Trades
             document.getElementById('totalPNL').innerText = `$${monthlyTotal.toFixed(2)}`;
             document.getElementById('totalPNL').className = `text-4xl font-mono ${monthlyTotal >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('totalTrades').innerText = totalTradesCount;
-            document.getElementById('winRate').innerText = `${winRateCalc}%`;
+            
+            // 2. Update Win Rate Text
+            const winRateElement = document.getElementById('winRate');
+            winRateElement.innerText = `${winRateCalc}%`;
+            
+            // 3. Apply the Colors (Red < 30%, Yellow 30-40%, Green > 40%)
+            winRateElement.classList.remove('text-red-400', 'text-yellow-400', 'text-green-400');
+            
+            if (totalTradesCount === 0) {
+                winRateElement.classList.add('text-yellow-400'); 
+            } else if (winRateCalc < 30) {
+                winRateElement.classList.add('text-red-400');
+            } else if (winRateCalc > 40) {
+                winRateElement.classList.add('text-green-400');
+            } else {
+                winRateElement.classList.add('text-yellow-400');
+            }
         }
 
         function changeMonth(delta) {
